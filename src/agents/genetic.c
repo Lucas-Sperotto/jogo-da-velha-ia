@@ -1,4 +1,5 @@
 #include "genetic.h"
+#include "rng.h"
 #include "agents.h"
 
 #include <stdio.h>
@@ -25,7 +26,7 @@ typedef struct {
  */
 static double random_between(double min, double max)
 {
-    return min + (max - min) * ((double)rand() / (double)RAND_MAX);
+    return min + (max - min) * rng_unit();
 }
 
 /**
@@ -181,8 +182,8 @@ void genetic_train(GeneticAgent *agent, int generations)
         for (int p=0;p<ELITE_COUNT;++p) next[p]=population[p];
 
         for (int p=ELITE_COUNT;p<POPULATION_SIZE;++p) {
-            int a=rand()%(POPULATION_SIZE/2);
-            int b=rand()%(POPULATION_SIZE/2);
+            int a=(int)rng_index(POPULATION_SIZE/2);
+            int b=(int)rng_index(POPULATION_SIZE/2);
             next[p].weights=crossover(&population[a].weights,&population[b].weights);
             mutate(&next[p].weights);
             next[p].fitness=0.0;

@@ -3,11 +3,11 @@
 #include "game.h"
 #include "genetic.h"
 #include "qlearning.h"
+#include "rng.h"
 #include "samuel.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 /**
  * @brief Exibe na tela o menu principal do Laboratório de Inteligência Artificial.
@@ -154,7 +154,7 @@ static void run_experiment_menu(void)
 /**
  * @brief Ponto de entrada principal do programa (CLI interativo).
  *
- * Inicializa a semente de números pseudoaleatórios com base no relógio do sistema (time(NULL))
+ * Inicializa o gerador pseudoaleatório central com uma seed automática baseada no relógio
  * e executa o laço de menu até que a opção 0 (Sair) seja acionada.
  *
  * @return Código de término de execução (0).
@@ -162,7 +162,7 @@ static void run_experiment_menu(void)
 int main(void)
 {
     int option;
-    srand((unsigned int)time(NULL));
+    (void)rng_seed_auto();
 
     do {
         clear_screen();

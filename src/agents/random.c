@@ -1,6 +1,5 @@
 #include "agents.h"
-
-#include <stdlib.h>
+#include "rng.h"
 
 /**
  * @brief Seleciona uma jogada aleatória uniforme entre todas as casas livres disponíveis.
@@ -23,5 +22,5 @@ int agent_random_move(Board *board, char player, void *context)
         return -1;
     }
 
-    return moves[rand() % count];
+    return moves[rng_index((size_t)count)];
 }
