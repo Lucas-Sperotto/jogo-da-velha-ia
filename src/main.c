@@ -133,15 +133,18 @@ static void run_experiment_menu(void)
     AgentKind akind=choose_agent("Agente A:");
     AgentKind bkind=choose_agent("Agente B:");
     int games=read_int("Número de partidas [1-100000]: ",1,100000);
+    int seed_input=read_int("Seed [0 = automática, 1-2147483647]: ",0,2147483647);
+    uint64_t seed=seed_input == 0 ? rng_seed_auto() : (uint64_t)seed_input;
     RuntimeAgent a,b;
 
+    rng_seed(seed);
     if (!init_pair(&a,akind,&b,bkind)) {
         printf("Falha ao inicializar agentes.\n");
         wait_enter();
         return;
     }
 
-    ExperimentResult result=run_experiment(&a,&b,games);
+    ExperimentResult result=run_experiment_seeded(&a,&b,games,seed);
     print_experiment_result(&a,&b,&result);
     if (append_experiment_csv("results/experiments.csv",&a,&b,&result))
         printf("Resultado registrado em results/experiments.csv\n");

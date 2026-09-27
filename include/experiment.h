@@ -3,6 +3,8 @@
 
 #include "registry.h"
 
+#include <stdint.h>
+
 /**
  * @brief Estrutura que agrega as métricas resultantes de uma série de partidas entre dois agentes.
  */
@@ -12,6 +14,7 @@ typedef struct {
     int wins_b;                /**< Número de vitórias do Agente B. */
     int draws;                 /**< Número de partidas finalizadas em empate. */
     unsigned long long moves;  /**< Soma total de jogadas realizadas em todas as partidas. */
+    uint64_t seed;              /**< Seed usada para as decisões estocásticas do experimento. */
 } ExperimentResult;
 
 /**
@@ -36,6 +39,22 @@ char play_ai_match(RuntimeAgent *x, RuntimeAgent *o, int visual);
  * @return Estrutura ExperimentResult preenchida com os resultados agregados.
  */
 ExperimentResult run_experiment(RuntimeAgent *a, RuntimeAgent *b, int games);
+
+/**
+ * @brief Executa um experimento com uma seed explícita e reproduzível.
+ *
+ * Antes da primeira partida, reinicializa o RNG global com a seed informada.
+ * Assim, dadas as mesmas versões dos agentes e os mesmos modelos persistidos,
+ * as decisões estocásticas do experimento podem ser reproduzidas.
+ *
+ * @param a Primeiro agente (Agente A).
+ * @param b Segundo agente (Agente B).
+ * @param games Quantidade de partidas a simular.
+ * @param seed Seed pseudoaleatória explícita.
+ * @return Estrutura ExperimentResult, incluindo a seed efetivamente usada.
+ */
+ExperimentResult run_experiment_seeded(RuntimeAgent *a, RuntimeAgent *b,
+                                       int games, uint64_t seed);
 
 /**
  * @brief Imprime no console um resumo legível e formatado dos resultados do experimento,

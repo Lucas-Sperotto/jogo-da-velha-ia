@@ -23,7 +23,7 @@ $(TARGET): $(OBJ)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 test: tests/test_rng tests/test_game tests/test_agents tests/test_minimax tests/test_alphabeta \
-      tests/test_samuel tests/test_genetic tests/test_qlearning tests/test_experiment
+      tests/test_samuel tests/test_genetic tests/test_qlearning tests/test_experiment tests/test_experiment_output.csv
 	./tests/test_rng
 	./tests/test_game
 	./tests/test_agents
@@ -64,4 +64,4 @@ tests/test_experiment: tests/test_experiment.c $(CORE_SRC) $(AI_SRC)
 clean:
 	rm -f $(OBJ) $(TARGET) tests/test_rng tests/test_game tests/test_agents tests/test_minimax \
 	      tests/test_alphabeta tests/test_samuel tests/test_genetic \
-	      tests/test_qlearning tests/test_experiment
+	      tests/test_qlearning tests/test_experiment tests/test_experiment_output.csv
