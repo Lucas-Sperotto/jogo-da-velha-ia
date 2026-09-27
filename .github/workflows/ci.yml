@@ -95,6 +95,7 @@ jobs:
         run: |
           set -euo pipefail
           tests=(
+            tests/test_input
             tests/test_rng
             tests/test_game
             tests/test_agents

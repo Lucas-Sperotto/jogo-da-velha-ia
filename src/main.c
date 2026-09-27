@@ -2,15 +2,13 @@
 #include "experiment.h"
 #include "game.h"
 #include "genetic.h"
+#include "input.h"
 #include "qlearning.h"
 #include "rng.h"
 #include "samuel.h"
 
-#include <ctype.h>
-#include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 /**
  * @brief Exibe na tela o menu principal do Laboratório de Inteligência Artificial.
@@ -50,11 +48,10 @@ static int read_int(const char *prompt, int min, int max)
 {
     char line[64];
     while (1) {
-        char *end=NULL;
+        int value;
         printf("%s",prompt);
         if (fgets(line,sizeof(line),stdin) == NULL) return min;
-        long value=strtol(line,&end,10);
-        if (end != line && value >= min && value <= max) return (int)value;
+        if (parse_int_range(line,min,max,&value)) return value;
         printf("Valor inválido. Escolha entre %d e %d.\n",min,max);
     }
 }
@@ -79,27 +76,15 @@ static uint64_t read_seed(void)
     char line[128];
 
     while (1) {
-        char *end=NULL;
-        char *start=line;
-        errno=0;
+        uint64_t value;
         printf("Seed [0 = automática, 1-%" PRIu64 "]: ",UINT64_MAX);
 
         if (fgets(line,sizeof(line),stdin) == NULL)
             return rng_seed_auto();
 
-        while (*start != '\0' && isspace((unsigned char)*start)) ++start;
-        if (*start == '-') {
-            printf("Seed inválida. Informe um inteiro de 0 a %" PRIu64 ".\n",UINT64_MAX);
-            continue;
-        }
-
-        uintmax_t value=strtoumax(start,&end,10);
-        if (end != start && errno != ERANGE && value <= UINT64_MAX) {
-            while (*end != '\0' && isspace((unsigned char)*end)) ++end;
-            if (*end == '\0') {
-                if (value == 0) return rng_seed_auto();
-                return (uint64_t)value;
-            }
+        if (parse_u64(line,&value)) {
+            if (value == 0) return rng_seed_auto();
+            return value;
         }
 
         printf("Seed inválida. Informe um inteiro de 0 a %" PRIu64 ".\n",UINT64_MAX);
