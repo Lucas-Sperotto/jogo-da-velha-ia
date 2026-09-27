@@ -3,8 +3,8 @@ CFLAGS ?= -std=c11 -O2 -Wall -Wextra -Wpedantic
 CPPFLAGS ?= -Iinclude
 
 TARGET := jogo_velha
-SRC := src/main.c src/game.c \
-       src/agents/random.c src/agents/heuristic.c
+AI_SRC := src/agents/random.c src/agents/heuristic.c src/agents/minimax.c
+SRC := src/main.c src/game.c $(AI_SRC)
 OBJ := $(SRC:.c=.o)
 
 .PHONY: all clean test
@@ -17,9 +17,10 @@ $(TARGET): $(OBJ)
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-test: tests/test_game tests/test_agents
+test: tests/test_game tests/test_agents tests/test_minimax
 	./tests/test_game
 	./tests/test_agents
+	./tests/test_minimax
 
 tests/test_game: tests/test_game.c src/game.c include/game.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_game.c src/game.c -o $@
@@ -27,5 +28,8 @@ tests/test_game: tests/test_game.c src/game.c include/game.h
 tests/test_agents: tests/test_agents.c src/game.c src/agents/random.c src/agents/heuristic.c include/game.h include/agents.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_agents.c src/game.c src/agents/random.c src/agents/heuristic.c -o $@
 
+tests/test_minimax: tests/test_minimax.c src/game.c src/agents/minimax.c include/game.h include/agents.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_minimax.c src/game.c src/agents/minimax.c -o $@
+
 clean:
-	rm -f $(OBJ) $(TARGET) tests/test_game tests/test_agents
+	rm -f $(OBJ) $(TARGET) tests/test_game tests/test_agents tests/test_minimax

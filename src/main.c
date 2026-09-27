@@ -59,7 +59,12 @@ int main(void)
             case 1: play_human_vs_human(); break;
             case 2: play_human_vs_agent("Aleatório",agent_random_move,NULL); break;
             case 3: play_human_vs_agent("Heurístico",agent_heuristic_move,NULL); break;
-            case 4: case 5: case 6: case 7: case 8: case 9: case 10:
+            case 4: {
+                SearchStats stats={0};
+                play_human_vs_agent("Minimax",agent_minimax_move,&stats);
+                break;
+            }
+            case 5: case 6: case 7: case 8: case 9: case 10:
                 not_implemented(option); break;
             default: printf("\nOpção inválida.\n"); wait_enter(); break;
         }
