@@ -23,7 +23,7 @@ $(TARGET): $(OBJ)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 test: tests/test_rng tests/test_game tests/test_agents tests/test_minimax tests/test_alphabeta \
-      tests/test_samuel tests/test_genetic tests/test_qlearning tests/test_experiment tests/test_experiment_output.csv
+      tests/test_samuel tests/test_genetic tests/test_qlearning tests/test_experiment
 	./tests/test_rng
 	./tests/test_game
 	./tests/test_agents

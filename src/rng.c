@@ -15,8 +15,16 @@ void rng_seed(uint64_t seed)
 
 uint64_t rng_seed_auto(void)
 {
-    uint64_t seed=(uint64_t)time(NULL);
-    seed ^= ((uint64_t)(unsigned long)clock()) << 32;
+    struct timespec now={0};
+    uint64_t seed;
+
+    if (timespec_get(&now,TIME_UTC) == TIME_UTC) {
+        seed=(uint64_t)now.tv_sec;
+        seed ^= (uint64_t)now.tv_nsec << 32;
+    } else {
+        seed=(uint64_t)time(NULL);
+    }
+    seed ^= (uint64_t)(unsigned long)clock();
     rng_seed(seed);
     return seed;
 }

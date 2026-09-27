@@ -1,6 +1,8 @@
 #include "qlearning.h"
+#include "rng.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 
 int main(void)
@@ -8,6 +10,7 @@ int main(void)
     QLearningAgent agent;
     Board board;
 
+    rng_seed(UINT64_C(3003));
     assert(qlearning_init(&agent));
     qlearning_train(&agent,1000);
     assert(agent.episodes == 1000);

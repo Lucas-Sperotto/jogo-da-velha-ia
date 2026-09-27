@@ -6,6 +6,9 @@
 #include "rng.h"
 #include "samuel.h"
 
+#include <ctype.h>
+#include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -64,6 +67,36 @@ static int read_int(const char *prompt, int min, int max)
 static int read_option(void)
 {
     return read_int("\nEscolha uma opção: ",0,10);
+}
+
+/**
+ * @brief Lê uma seed de 64 bits. O valor 0 solicita geração automática.
+ *
+ * @return Seed explícita ou uma seed automática quando o usuário informa 0/EOF.
+ */
+static uint64_t read_seed(void)
+{
+    char line[128];
+
+    while (1) {
+        char *end=NULL;
+        errno=0;
+        printf("Seed [0 = automática, 1-%" PRIu64 "]: ",UINT64_MAX);
+
+        if (fgets(line,sizeof(line),stdin) == NULL)
+            return rng_seed_auto();
+
+        uintmax_t value=strtoumax(line,&end,10);
+        if (end != line && errno != ERANGE && value <= UINT64_MAX) {
+            while (*end != '\0' && isspace((unsigned char)*end)) ++end;
+            if (*end == '\0') {
+                if (value == 0) return rng_seed_auto();
+                return (uint64_t)value;
+            }
+        }
+
+        printf("Seed inválida. Informe um inteiro de 0 a %" PRIu64 ".\n",UINT64_MAX);
+    }
 }
 
 /**
@@ -133,11 +166,11 @@ static void run_experiment_menu(void)
     AgentKind akind=choose_agent("Agente A:");
     AgentKind bkind=choose_agent("Agente B:");
     int games=read_int("Número de partidas [1-100000]: ",1,100000);
-    int seed_input=read_int("Seed [0 = automática, 1-2147483647]: ",0,2147483647);
-    uint64_t seed=seed_input == 0 ? rng_seed_auto() : (uint64_t)seed_input;
+    uint64_t seed=read_seed();
     RuntimeAgent a,b;
 
     rng_seed(seed);
+    printf("Seed selecionada: %" PRIu64 "\n",seed);
     if (!init_pair(&a,akind,&b,bkind)) {
         printf("Falha ao inicializar agentes.\n");
         wait_enter();
