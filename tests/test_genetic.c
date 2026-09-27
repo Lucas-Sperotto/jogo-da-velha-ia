@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
 
 static void test_truncated_load_is_atomic(void)
 {
@@ -24,7 +23,10 @@ static void test_truncated_load_is_atomic(void)
     fclose(file);
 
     assert(!genetic_load(&agent,path));
-    assert(memcmp(&agent,&before,sizeof(agent)) == 0);
+    assert(agent.generations == before.generations);
+    assert(agent.best_fitness == before.best_fitness);
+    for (int i=0;i<FEATURE_COUNT;++i)
+        assert(agent.best.values[i] == before.best.values[i]);
     assert(remove(path) == 0);
 }
 

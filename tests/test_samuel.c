@@ -3,7 +3,6 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include <string.h>
 
 static void test_returns_valid_move(void)
 {
@@ -39,7 +38,10 @@ static void test_truncated_load_is_atomic(void)
     fclose(file);
 
     assert(!samuel_load(&agent,path));
-    assert(memcmp(&agent,&before,sizeof(agent)) == 0);
+    assert(agent.learning_rate == before.learning_rate);
+    assert(agent.exploration == before.exploration);
+    for (int i=0;i<FEATURE_COUNT;++i)
+        assert(agent.weights.values[i] == before.weights.values[i]);
     assert(remove(path) == 0);
 }
 
