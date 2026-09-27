@@ -72,6 +72,7 @@ jogo-da-velha-ia/
 │   ├── game.c            regras e interface do jogo
 │   ├── registry.c        registro uniforme dos agentes
 │   ├── experiment.c      IA × IA e experimentos
+│   ├── rng.c             PRNG central e reproduzível
 │   └── agents/           algoritmos de IA
 ├── tests/                testes locais
 ├── docs/                 material didático
@@ -100,6 +101,8 @@ O **Minimax** e o **Alpha-Beta** são as referências ótimas: em Jogo da Velha 
 
 A opção 10 alterna os lados dos agentes e registra resultados em `results/experiments.csv`. Para Minimax e Alpha-Beta também são coletadas métricas de nós visitados e podas.
 
+Cada experimento recebe uma **seed**. O valor `0` no menu gera uma seed automaticamente; qualquer inteiro positivo de até 64 bits pode ser informado para repetir a mesma sequência pseudoaleatória. A seed efetivamente usada é exibida e gravada no CSV.
+
 Consulte [docs/experiments.md](docs/experiments.md).
 
 ## Fork dos alunos
@@ -124,7 +127,7 @@ O workflow `.github/workflows/ci.yml` é executado automaticamente em pushes e p
 - GCC com `-Werror` e todas as suítes;
 - Clang com `-Werror` e todas as suítes;
 - AddressSanitizer (ASan) e UndefinedBehaviorSanitizer (UBSan);
-- Valgrind Memcheck nas oito suítes de teste.
+- Valgrind Memcheck nas nove suítes de teste, incluindo a validação do RNG.
 
 A validação local continua disponível com `make` e `make test`.
 

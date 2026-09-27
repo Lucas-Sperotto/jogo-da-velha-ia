@@ -2,7 +2,7 @@
 
 ## Aleatório
 
-Baseline sem estratégia. Escolhe uniformemente uma casa livre.
+Baseline sem estratégia. Escolhe uniformemente uma casa livre usando o PRNG central do projeto. A escolha por índice usa rejeição para evitar viés de módulo.
 
 ## Heurístico
 
