@@ -80,14 +80,21 @@ static uint64_t read_seed(void)
 
     while (1) {
         char *end=NULL;
+        char *start=line;
         errno=0;
         printf("Seed [0 = automática, 1-%" PRIu64 "]: ",UINT64_MAX);
 
         if (fgets(line,sizeof(line),stdin) == NULL)
             return rng_seed_auto();
 
-        uintmax_t value=strtoumax(line,&end,10);
-        if (end != line && errno != ERANGE && value <= UINT64_MAX) {
+        while (*start != '\0' && isspace((unsigned char)*start)) ++start;
+        if (*start == '-') {
+            printf("Seed inválida. Informe um inteiro de 0 a %" PRIu64 ".\n",UINT64_MAX);
+            continue;
+        }
+
+        uintmax_t value=strtoumax(start,&end,10);
+        if (end != start && errno != ERANGE && value <= UINT64_MAX) {
             while (*end != '\0' && isspace((unsigned char)*end)) ++end;
             if (*end == '\0') {
                 if (value == 0) return rng_seed_auto();
