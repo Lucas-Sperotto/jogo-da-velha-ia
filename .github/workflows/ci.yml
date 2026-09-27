@@ -65,3 +65,48 @@ jobs:
       - name: Run tests with sanitizers
         run: |
           make test CC=gcc CFLAGS="-std=c11 -O1 -g -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -fno-omit-frame-pointer"
+
+  valgrind:
+    name: Valgrind memory checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y valgrind
+
+      - name: Build and run test suite
+        run: |
+          make clean
+          make test CC=gcc CFLAGS="-std=c11 -O1 -g -Wall -Wextra -Wpedantic -Werror"
+
+      - name: Run all tests under Valgrind
+        shell: bash
+        run: |
+          set -euo pipefail
+          tests=(
+            tests/test_game
+            tests/test_agents
+            tests/test_minimax
+            tests/test_alphabeta
+            tests/test_samuel
+            tests/test_genetic
+            tests/test_qlearning
+            tests/test_experiment
+          )
+
+          for test_binary in "${tests[@]}"; do
+            echo "::group::Valgrind ${test_binary}"
+            valgrind \
+              --quiet \
+              --leak-check=full \
+              --show-leak-kinds=all \
+              --errors-for-leak-kinds=all \
+              --track-origins=yes \
+              --error-exitcode=1 \
+              "./${test_binary}"
+            echo "::endgroup::"
+          done

@@ -18,11 +18,13 @@ Prioridades explícitas:
 
 Explora recursivamente o jogo até estados terminais. Vitória da IA recebe valor positivo, derrota valor negativo e empate zero. A profundidade favorece vitórias mais rápidas e derrotas mais tardias.
 
-O teste automatizado explora todas as respostas humanas possíveis contra o Minimax jogando de `O` e verifica que o humano não consegue forçar uma vitória.
+Os testes automatizados exploram todas as respostas possíveis do adversário contra o Minimax jogando como `X` e como `O`. Em ambos os lados, verificam que o adversário não consegue forçar uma vitória e também confirmam que a função de seleção não altera permanentemente o tabuleiro durante a análise.
 
 ## Alpha-Beta
 
-Produz a mesma decisão ótima do Minimax, mas elimina ramos que não podem modificar a decisão final. O laboratório contabiliza nós visitados e podas.
+Preserva a optimalidade do Minimax, mas elimina ramos que não podem modificar o valor da decisão final. O laboratório contabiliza nós visitados e podas.
+
+Os testes verificam uma decisão representativa em igualdade com o Minimax, confirmam que há podas e redução de nós na árvore inicial e exploram todas as respostas possíveis do adversário contra o Alpha-Beta tanto como `X` quanto como `O`. Como podem existir várias jogadas igualmente ótimas em uma mesma posição, a propriedade essencial é preservar o valor ótimo, não necessariamente um desempate universal entre implementações diferentes.
 
 ## Samuel-style
 
