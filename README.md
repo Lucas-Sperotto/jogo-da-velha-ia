@@ -119,7 +119,14 @@ Pesos treinados, tabelas Q, binários e CSVs não são versionados. Eles são pr
 
 ## GitHub Actions
 
-**Não utilizamos GitHub Actions nesta fase.** Compilação e testes são executados localmente com `make` e `make test`.
+O workflow `.github/workflows/ci.yml` é executado automaticamente em pushes e pull requests para `main`, além de permitir execução manual. O CI valida:
+
+- GCC com `-Werror` e todas as suítes;
+- Clang com `-Werror` e todas as suítes;
+- AddressSanitizer (ASan) e UndefinedBehaviorSanitizer (UBSan);
+- Valgrind Memcheck nas oito suítes de teste.
+
+A validação local continua disponível com `make` e `make test`.
 
 ## Licença
 

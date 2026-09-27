@@ -158,7 +158,7 @@ typedef int (*MoveSelector)(Board *board, char player, void *context);
   - Vitória da raiz: $+10 - \text{depth}$ (prioriza vitórias mais rápidas).
   - Vitória do adversário: $\text{depth} - 10$ (adia derrotas ao máximo).
   - Empate: $0$.
-- **Propriedades:** Garante jogo perfeito. Não perde nenhuma partida quando configurado como primeiro ou segundo jogador.
+- **Propriedades:** Garante jogo perfeito. Os testes exploram todas as respostas possíveis do adversário e verificam que o agente não pode ser forçado a perder nem como `X` nem como `O`.
 - **Estatísticas:** Contabiliza o número total de nós visitados via `stats->nodes`.
 
 ### 3.4 Agente Alpha-Beta
@@ -168,7 +168,7 @@ typedef int (*MoveSelector)(Board *board, char player, void *context);
 - **Poda:**
   - Poda quando $\alpha \ge \beta$.
   - Incrementa `stats->prunes` quando um corte ocorre.
-- **Equivalência Matemática:** Garante rigorosamente as mesmas decisões do Minimax clássico, porém visitando uma fração substancialmente menor de nós da árvore de busca.
+- **Equivalência Matemática:** Preserva o valor ótimo do Minimax, porém visitando menos nós graças às podas. Em posições com várias jogadas igualmente ótimas, implementações com critérios de desempate diferentes podem selecionar movimentos distintos sem perder optimalidade.
 
 ---
 
@@ -361,11 +361,23 @@ gcc -std=c11 -O2 -Wall -Wextra -Wpedantic
 Executado com `--leak-check=full --error-exitcode=1` sobre todas as 8 suítes de testes:
 - `tests/test_game`: 0 erros, 0 vazamentos.
 - `tests/test_agents`: 0 erros, 0 vazamentos.
-- `tests/test_minimax`: 0 erros, 0 vazamentos (invencibilidade comprovada em todo o espaço de busca de O).
-- `tests/test_alphabeta`: 0 erros, 0 vazamentos (comprovação de equivalência com Minimax e redução de nós por poda).
+- `tests/test_minimax`: 0 erros, 0 vazamentos; a árvore de respostas do adversário é explorada para verificar invencibilidade como `X` e como `O`.
+- `tests/test_alphabeta`: 0 erros, 0 vazamentos; os testes verificam podas, redução de nós, uma decisão representativa em igualdade com Minimax e invencibilidade como `X` e como `O`.
 - `tests/test_samuel`: 0 erros, 0 vazamentos (atualização de pesos por gradiente validada).
 - `tests/test_genetic`: 0 erros, 0 vazamentos (ciclo geracional e fitness validados).
 - `tests/test_qlearning`: 0 erros, 0 vazamentos (alocação de 1,4 MB e desalocação limpa comprovada).
 - `tests/test_experiment`: 0 erros, 0 vazamentos (torneio Minimax vs Aleatório comprovando 0 vitórias do agente aleatório).
 
 **Resumo da verificação:** Todos os blocos da heap foram devidamente liberados. Nenhuma violação de acesso a ponteiros ou leitura não inicializada foi detectada.
+
+
+### Integração Contínua
+
+O workflow `.github/workflows/ci.yml` executa automaticamente:
+
+- compilação e testes com GCC usando warnings como erro (`-Werror`);
+- compilação e testes com Clang usando warnings como erro;
+- ASan e UBSan;
+- Valgrind Memcheck nas oito suítes.
+
+Assim, as verificações de compilação, comportamento e segurança de memória deixam de depender apenas da execução manual local.
