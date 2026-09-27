@@ -1,5 +1,6 @@
 #include "agents.h"
 #include "game.h"
+#include "genetic.h"
 #include "samuel.h"
 
 #include <stdio.h>
@@ -81,7 +82,18 @@ int main(void)
                 play_human_vs_agent("Samuel-style",agent_samuel_move,&samuel);
                 break;
             }
-            case 7: case 8: case 9: case 10:
+            case 7: {
+                GeneticAgent genetic;
+                genetic_init(&genetic);
+                if (!genetic_load(&genetic,"data/genetic_weights.dat")) {
+                    printf("\nEvoluindo população de estratégias...\n");
+                    genetic_train(&genetic,60);
+                    (void)genetic_save(&genetic,"data/genetic_weights.dat");
+                }
+                play_human_vs_agent("Genético",agent_genetic_move,&genetic);
+                break;
+            }
+            case 8: case 9: case 10:
                 not_implemented(option); break;
             default: printf("\nOpção inválida.\n"); wait_enter(); break;
         }
