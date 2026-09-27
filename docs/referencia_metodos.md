@@ -421,3 +421,16 @@ A conversão numérica foi extraída de `main.c` para permitir testes independen
 - `parse_u64`: interpreta seeds de 64 bits, incluindo `UINT64_MAX`, e rejeita números negativos, overflow e caracteres extras.
 
 O menu continua usando `fgets`, mas delega a interpretação ao módulo de entrada. Isso evita que uma entrada parcialmente numérica seja aceita silenciosamente.
+
+
+---
+
+## 14. Carregamento atômico de modelos
+
+Os carregadores de Samuel-style, Algoritmo Genético e Q-Learning validam os dados em estruturas temporárias antes de alterar o agente em memória.
+
+- `samuel_load`: lê todos os pesos em `StrategyWeights` temporário e só então publica o novo vetor;
+- `genetic_load`: lê gerações, fitness e cromossomo em um `GeneticAgent` temporário;
+- `qlearning_load`: lê a tabela Q em buffer temporário e só realiza `memcpy` após leitura completa.
+
+Arquivos truncados ou malformados retornam falha sem deixar estado parcialmente carregado. As suítes correspondentes criam arquivos truncados de propósito para validar essa propriedade.

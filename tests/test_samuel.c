@@ -23,11 +23,34 @@ static void test_training_updates_weights(void)
     assert(agent.weights.values[1] != before);
 }
 
+static void test_truncated_load_is_atomic(void)
+{
+    const char *path="tests/tmp_samuel_bad.dat";
+    SamuelAgent agent;
+    SamuelAgent before;
+
+    samuel_init(&agent);
+    before=agent;
+
+    FILE *file=fopen(path,"w");
+    assert(file != NULL);
+    fputs("99 88\n",file);
+    fclose(file);
+
+    assert(!samuel_load(&agent,path));
+    assert(agent.learning_rate == before.learning_rate);
+    assert(agent.exploration == before.exploration);
+    for (int i=0;i<FEATURE_COUNT;++i)
+        assert(agent.weights.values[i] == before.weights.values[i]);
+    assert(remove(path) == 0);
+}
+
 int main(void)
 {
     rng_seed(UINT64_C(1001));
     test_returns_valid_move();
     test_training_updates_weights();
+    test_truncated_load_is_atomic();
     puts("test_samuel: OK");
     return 0;
 }

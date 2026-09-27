@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief Codifica o estado do tabuleiro em um único inteiro na base 3 sob a ótica do jogador.
@@ -276,18 +277,32 @@ int qlearning_save(const QLearningAgent *agent, const char *path)
  */
 int qlearning_load(QLearningAgent *agent, const char *path)
 {
+    const size_t count=(size_t)Q_STATE_COUNT*Q_ACTION_COUNT;
+    int episodes=0;
+    double *loaded;
+
+    if (agent == NULL || agent->q == NULL || path == NULL) return 0;
+
     FILE *file=fopen(path,"rb");
     if (file == NULL) return 0;
 
-    int episodes=0;
-    if (fread(&episodes,sizeof(episodes),1,file) != 1 ||
-        fread(agent->q,sizeof(double),(size_t)Q_STATE_COUNT*Q_ACTION_COUNT,file) !=
-        (size_t)Q_STATE_COUNT*Q_ACTION_COUNT) {
+    loaded=malloc(count*sizeof(*loaded));
+    if (loaded == NULL) {
         fclose(file);
         return 0;
     }
 
+    if (fread(&episodes,sizeof(episodes),1,file) != 1 ||
+        fread(loaded,sizeof(*loaded),count,file) != count) {
+        free(loaded);
+        fclose(file);
+        return 0;
+    }
+
+    memcpy(agent->q,loaded,count*sizeof(*loaded));
     agent->episodes=episodes;
+
+    free(loaded);
     fclose(file);
     return 1;
 }
