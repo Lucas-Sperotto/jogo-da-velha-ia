@@ -5,7 +5,7 @@ CPPFLAGS ?= -Iinclude
 TARGET := jogo_velha
 AI_SRC := src/agents/random.c src/agents/heuristic.c \
           src/agents/minimax.c src/agents/alphabeta.c \
-          src/agents/features.c src/agents/samuel.c src/agents/genetic.c
+          src/agents/features.c src/agents/samuel.c src/agents/genetic.c src/agents/qlearning.c
 SRC := src/main.c src/game.c $(AI_SRC)
 OBJ := $(SRC:.c=.o)
 
@@ -19,7 +19,7 @@ $(TARGET): $(OBJ)
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-test: tests/test_game tests/test_agents tests/test_minimax tests/test_alphabeta tests/test_samuel tests/test_genetic
+test: tests/test_game tests/test_agents tests/test_minimax tests/test_alphabeta tests/test_samuel tests/test_genetic tests/test_qlearning
 	./tests/test_game
 	./tests/test_agents
 	./tests/test_minimax

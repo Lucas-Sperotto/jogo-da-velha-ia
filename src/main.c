@@ -2,6 +2,7 @@
 #include "game.h"
 #include "genetic.h"
 #include "samuel.h"
+#include "qlearning.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,7 +94,23 @@ int main(void)
                 play_human_vs_agent("Genético",agent_genetic_move,&genetic);
                 break;
             }
-            case 8: case 9: case 10:
+            case 8: {
+                QLearningAgent qagent;
+                if (!qlearning_init(&qagent)) {
+                    printf("\nFalha ao alocar tabela Q.\n");
+                    wait_enter();
+                    break;
+                }
+                if (!qlearning_load(&qagent,"data/qtable.bin")) {
+                    printf("\nTreinando Q-Learning...\n");
+                    qlearning_train(&qagent,50000);
+                    (void)qlearning_save(&qagent,"data/qtable.bin");
+                }
+                play_human_vs_agent("Q-Learning",agent_qlearning_move,&qagent);
+                qlearning_free(&qagent);
+                break;
+            }
+            case 9: case 10:
                 not_implemented(option); break;
             default: printf("\nOpção inválida.\n"); wait_enter(); break;
         }
