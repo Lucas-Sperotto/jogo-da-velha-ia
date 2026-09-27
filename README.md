@@ -73,6 +73,7 @@ jogo-da-velha-ia/
 │   ├── registry.c        registro uniforme dos agentes
 │   ├── experiment.c      IA × IA e experimentos
 │   ├── rng.c             PRNG central e reproduzível
+│   ├── input.c           parsing numérico estrito
 │   └── agents/           algoritmos de IA
 ├── tests/                testes locais
 ├── docs/                 material didático
@@ -127,7 +128,7 @@ O workflow `.github/workflows/ci.yml` é executado automaticamente em pushes e p
 - GCC com `-Werror` e todas as suítes;
 - Clang com `-Werror` e todas as suítes;
 - AddressSanitizer (ASan) e UndefinedBehaviorSanitizer (UBSan);
-- Valgrind Memcheck nas nove suítes de teste, incluindo a validação do RNG.
+- Valgrind Memcheck nas dez suítes de teste, incluindo RNG e parsing de entrada.
 
 A validação local continua disponível com `make` e `make test`.
 
