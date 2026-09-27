@@ -1,4 +1,5 @@
 #include "qlearning.h"
+#include "rng.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -88,8 +89,8 @@ static int choose_action(QLearningAgent *agent, Board *board, char player, doubl
     int count=board_available_moves(board,moves);
     if (count == 0) return -1;
 
-    if (epsilon > 0.0 && ((double)rand()/(double)RAND_MAX) < epsilon)
-        return moves[rand()%count];
+    if (epsilon > 0.0 && rng_unit() < epsilon)
+        return moves[rng_index((size_t)count)];
 
     int state=encode_state(board,player);
     int best_move=moves[0];
@@ -117,7 +118,7 @@ static int random_move(Board *board)
 {
     int moves[BOARD_SIZE];
     int count=board_available_moves(board,moves);
-    return count > 0 ? moves[rand()%count] : -1;
+    return count > 0 ? moves[rng_index((size_t)count)] : -1;
 }
 
 /**

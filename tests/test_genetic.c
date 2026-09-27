@@ -1,12 +1,15 @@
 #include "genetic.h"
+#include "rng.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 
 int main(void)
 {
     GeneticAgent agent;
     Board board;
+    rng_seed(UINT64_C(2002));
     genetic_init(&agent);
     genetic_train(&agent,2);
     board_init(&board);

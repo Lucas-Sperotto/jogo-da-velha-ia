@@ -137,7 +137,7 @@ typedef int (*MoveSelector)(Board *board, char player, void *context);
 
 ### 3.1 Agente Aleatório
 - **Função:** `agent_random_move(Board *board, char player, void *context)`
-- **Algoritmo:** Invoca `board_available_moves`. Se count $> 0$, retorna `moves[rand() % count]`.
+- **Algoritmo:** Invoca `board_available_moves`. Se `count > 0`, sorteia um índice uniforme com `rng_index(count)` e retorna a casa correspondente.
 - **Propósito didático:** Serve como *baseline* nulo (desempenho mínimo).
 
 ### 3.2 Agente Heurístico
@@ -250,7 +250,7 @@ Evolui populações de vetores de pesos usando princípios neodarwinianos.
   - Vitória: $+3.0$
   - Empate: $+1.0$
   - Derrota: $-2.0$
-- **Seleção:** Seleção por truncamento nos 50% melhores da população (`rand() % (POPULATION_SIZE / 2)`).
+- **Seleção:** Seleção por truncamento nos 50% melhores da população, usando `rng_index(POPULATION_SIZE / 2)` para escolher os progenitores.
 - **Cruzamento (Crossover Aritmético):**
   $$Child_i = \lambda \cdot ParentA_i + (1 - \lambda) \cdot ParentB_i, \quad \lambda \sim \mathcal{U}(0, 1)$$
 - **Mutação:** Taxa de mutação de 25% por gene, adicionando um valor perturbador $\Delta \sim \mathcal{U}(-1.0, 1.0)$.
@@ -358,7 +358,8 @@ gcc -std=c11 -O2 -Wall -Wextra -Wpedantic
 **Resultado:** Zero warnings e compilação limpa em todos os alvos e suítes de teste.
 
 ### Verificação de Vazamento de Memória (Valgrind Memcheck)
-Executado com `--leak-check=full --error-exitcode=1` sobre todas as 8 suítes de testes:
+Executado com `--leak-check=full --error-exitcode=1` sobre todas as 9 suítes de testes:
+- `tests/test_rng`: valida sequência conhecida, reseed determinístico e faixas das funções de amostragem.
 - `tests/test_game`: 0 erros, 0 vazamentos.
 - `tests/test_agents`: 0 erros, 0 vazamentos.
 - `tests/test_minimax`: 0 erros, 0 vazamentos; a árvore de respostas do adversário é explorada para verificar invencibilidade como `X` e como `O`.
@@ -378,6 +379,30 @@ O workflow `.github/workflows/ci.yml` executa automaticamente:
 - compilação e testes com GCC usando warnings como erro (`-Werror`);
 - compilação e testes com Clang usando warnings como erro;
 - ASan e UBSan;
-- Valgrind Memcheck nas oito suítes.
+- Valgrind Memcheck nas nove suítes.
 
 Assim, as verificações de compilação, comportamento e segurança de memória deixam de depender apenas da execução manual local.
+
+
+---
+
+## 12. Gerador Pseudoaleatório e Reprodutibilidade
+
+**Arquivos:** `include/rng.h`, `src/rng.c`
+
+Todos os componentes estocásticos usam uma única interface de PRNG. A implementação é baseada em **SplitMix64**, com operações unsigned de 64 bits, o que define uma sequência determinística para uma determinada seed.
+
+### Operações principais
+
+- `rng_seed(seed)`: reinicializa a sequência com uma seed explícita;
+- `rng_seed_auto()`: cria uma seed para uso interativo a partir do relógio do sistema;
+- `rng_get_seed()`: informa a seed instalada;
+- `rng_next_u64()` e `rng_next_u32()`: geram inteiros pseudoaleatórios;
+- `rng_index(bound)`: escolhe um índice em `[0,bound)` com rejeição, evitando viés de módulo;
+- `rng_unit()`: produz um `double` uniforme em `[0,1)`.
+
+O teste `tests/test_rng.c` contém um vetor de referência para a seed `42`, garantindo que mudanças acidentais no algoritmo sejam detectadas. Os testes de Samuel-style, Algoritmo Genético e Q-Learning também definem seeds explícitas para que o CI não dependa do relógio.
+
+### Experimentos
+
+`run_experiment_seeded` reinicializa o PRNG antes das partidas e grava a seed no `ExperimentResult`. O CSV usa a coluna `seed` como primeira coluna, permitindo registrar e repetir condições estocásticas.

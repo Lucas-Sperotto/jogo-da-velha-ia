@@ -1,4 +1,5 @@
 #include "samuel.h"
+#include "rng.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -24,6 +25,7 @@ static void test_training_updates_weights(void)
 
 int main(void)
 {
+    rng_seed(UINT64_C(1001));
     test_returns_valid_move();
     test_training_updates_weights();
     puts("test_samuel: OK");

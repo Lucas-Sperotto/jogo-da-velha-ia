@@ -3,11 +3,14 @@
 #include "game.h"
 #include "genetic.h"
 #include "qlearning.h"
+#include "rng.h"
 #include "samuel.h"
 
+#include <ctype.h>
+#include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 /**
  * @brief Exibe na tela o menu principal do Laboratório de Inteligência Artificial.
@@ -64,6 +67,43 @@ static int read_int(const char *prompt, int min, int max)
 static int read_option(void)
 {
     return read_int("\nEscolha uma opção: ",0,10);
+}
+
+/**
+ * @brief Lê uma seed de 64 bits. O valor 0 solicita geração automática.
+ *
+ * @return Seed explícita ou uma seed automática quando o usuário informa 0/EOF.
+ */
+static uint64_t read_seed(void)
+{
+    char line[128];
+
+    while (1) {
+        char *end=NULL;
+        char *start=line;
+        errno=0;
+        printf("Seed [0 = automática, 1-%" PRIu64 "]: ",UINT64_MAX);
+
+        if (fgets(line,sizeof(line),stdin) == NULL)
+            return rng_seed_auto();
+
+        while (*start != '\0' && isspace((unsigned char)*start)) ++start;
+        if (*start == '-') {
+            printf("Seed inválida. Informe um inteiro de 0 a %" PRIu64 ".\n",UINT64_MAX);
+            continue;
+        }
+
+        uintmax_t value=strtoumax(start,&end,10);
+        if (end != start && errno != ERANGE && value <= UINT64_MAX) {
+            while (*end != '\0' && isspace((unsigned char)*end)) ++end;
+            if (*end == '\0') {
+                if (value == 0) return rng_seed_auto();
+                return (uint64_t)value;
+            }
+        }
+
+        printf("Seed inválida. Informe um inteiro de 0 a %" PRIu64 ".\n",UINT64_MAX);
+    }
 }
 
 /**
@@ -133,15 +173,18 @@ static void run_experiment_menu(void)
     AgentKind akind=choose_agent("Agente A:");
     AgentKind bkind=choose_agent("Agente B:");
     int games=read_int("Número de partidas [1-100000]: ",1,100000);
+    uint64_t seed=read_seed();
     RuntimeAgent a,b;
 
+    rng_seed(seed);
+    printf("Seed selecionada: %" PRIu64 "\n",seed);
     if (!init_pair(&a,akind,&b,bkind)) {
         printf("Falha ao inicializar agentes.\n");
         wait_enter();
         return;
     }
 
-    ExperimentResult result=run_experiment(&a,&b,games);
+    ExperimentResult result=run_experiment_seeded(&a,&b,games,seed);
     print_experiment_result(&a,&b,&result);
     if (append_experiment_csv("results/experiments.csv",&a,&b,&result))
         printf("Resultado registrado em results/experiments.csv\n");
@@ -154,7 +197,7 @@ static void run_experiment_menu(void)
 /**
  * @brief Ponto de entrada principal do programa (CLI interativo).
  *
- * Inicializa a semente de números pseudoaleatórios com base no relógio do sistema (time(NULL))
+ * Inicializa o gerador pseudoaleatório central com uma seed automática baseada no relógio
  * e executa o laço de menu até que a opção 0 (Sair) seja acionada.
  *
  * @return Código de término de execução (0).
@@ -162,7 +205,7 @@ static void run_experiment_menu(void)
 int main(void)
 {
     int option;
-    srand((unsigned int)time(NULL));
+    (void)rng_seed_auto();
 
     do {
         clear_screen();

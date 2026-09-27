@@ -1,6 +1,5 @@
 #include "learning.h"
-
-#include <stdlib.h>
+#include "rng.h"
 
 /**
  * @brief Conta quantas jogadas imediatas de vitória existem para um determinado jogador.
@@ -152,8 +151,8 @@ int weighted_best_move(Board *board, char player, const StrategyWeights *weights
     if (count == 0) return -1;
 
     if (epsilon > 0.0) {
-        double r=(double)rand()/(double)RAND_MAX;
-        if (r < epsilon) return moves[rand()%count];
+        double r=rng_unit();
+        if (r < epsilon) return moves[rng_index((size_t)count)];
     }
 
     int best_move=moves[0];

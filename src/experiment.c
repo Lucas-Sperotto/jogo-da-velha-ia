@@ -1,5 +1,7 @@
 #include "experiment.h"
+#include "rng.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 
 /**
@@ -64,11 +66,14 @@ char play_ai_match(RuntimeAgent *x, RuntimeAgent *o, int visual)
  * @param games Quantidade de partidas a executar.
  * @return Estrutura ExperimentResult com contagem agregada de vitórias, empates e jogadas.
  */
-ExperimentResult run_experiment(RuntimeAgent *a, RuntimeAgent *b, int games)
+ExperimentResult run_experiment_seeded(RuntimeAgent *a, RuntimeAgent *b,
+                                       int games, uint64_t seed)
 {
     ExperimentResult result={0};
+    result.seed=seed;
     if (games <= 0) return result;
 
+    rng_seed(seed);
     result.games=games;
     for (int i=0;i<games;++i) {
         char winner;
@@ -88,6 +93,11 @@ ExperimentResult run_experiment(RuntimeAgent *a, RuntimeAgent *b, int games)
     return result;
 }
 
+ExperimentResult run_experiment(RuntimeAgent *a, RuntimeAgent *b, int games)
+{
+    return run_experiment_seeded(a,b,games,rng_seed_auto());
+}
+
 /**
  * @brief Exibe na saída padrão um resumo legível e estatístico do experimento.
  *
@@ -105,6 +115,7 @@ void print_experiment_result(const RuntimeAgent *a, const RuntimeAgent *b,
     printf("Agente A: %s\n",a->name);
     printf("Agente B: %s\n",b->name);
     printf("Partidas: %d\n",result->games);
+    printf("Seed:     %" PRIu64 "\n",result->seed);
     printf("Vitórias A: %d\n",result->wins_a);
     printf("Vitórias B: %d\n",result->wins_b);
     printf("Empates:    %d\n",result->draws);
@@ -133,10 +144,10 @@ int append_experiment_csv(const char *path, const RuntimeAgent *a,
     if (file == NULL) return 0;
 
     if (fseek(file,0,SEEK_END) == 0 && ftell(file) == 0)
-        fprintf(file,"agent_a,agent_b,games,wins_a,wins_b,draws,moves,nodes_a,prunes_a,nodes_b,prunes_b\n");
+        fprintf(file,"seed,agent_a,agent_b,games,wins_a,wins_b,draws,moves,nodes_a,prunes_a,nodes_b,prunes_b\n");
 
-    fprintf(file,"%s,%s,%d,%d,%d,%d,%llu,%llu,%llu,%llu,%llu\n",
-            a->name,b->name,result->games,result->wins_a,result->wins_b,
+    fprintf(file,"%" PRIu64 ",%s,%s,%d,%d,%d,%d,%llu,%llu,%llu,%llu,%llu\n",
+            result->seed,a->name,b->name,result->games,result->wins_a,result->wins_b,
             result->draws,result->moves,a->total_nodes,a->total_prunes,
             b->total_nodes,b->total_prunes);
     fclose(file);

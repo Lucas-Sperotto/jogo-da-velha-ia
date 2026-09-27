@@ -2,6 +2,7 @@
 *.o
 jogo_velha
 tests/test_game
+tests/test_rng
 tests/test_agents
 tests/test_minimax
 tests/test_alphabeta
