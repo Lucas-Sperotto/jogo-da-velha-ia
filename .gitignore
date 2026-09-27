@@ -22,3 +22,6 @@ data/*.bin
 .idea/
 .DS_Store
 Thumbs.db
+
+# Temporary corruption fixtures created by tests
+tests/tmp_*

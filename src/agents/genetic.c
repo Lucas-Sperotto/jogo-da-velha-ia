@@ -236,18 +236,24 @@ int genetic_save(const GeneticAgent *agent, const char *path)
  */
 int genetic_load(GeneticAgent *agent, const char *path)
 {
+    GeneticAgent loaded;
+    if (agent == NULL || path == NULL) return 0;
+
     FILE *file=fopen(path,"r");
     if (file == NULL) return 0;
-    if (fscanf(file,"%d %lf",&agent->generations,&agent->best_fitness) != 2) {
+
+    if (fscanf(file,"%d %lf",&loaded.generations,&loaded.best_fitness) != 2) {
         fclose(file);
         return 0;
     }
     for (int i=0;i<FEATURE_COUNT;++i) {
-        if (fscanf(file,"%lf",&agent->best.values[i]) != 1) {
+        if (fscanf(file,"%lf",&loaded.best.values[i]) != 1) {
             fclose(file);
             return 0;
         }
     }
+
     fclose(file);
+    *agent=loaded;
     return 1;
 }

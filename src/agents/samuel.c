@@ -128,14 +128,20 @@ int samuel_save(const SamuelAgent *agent, const char *path)
  */
 int samuel_load(SamuelAgent *agent, const char *path)
 {
+    StrategyWeights loaded;
+    if (agent == NULL || path == NULL) return 0;
+
     FILE *file=fopen(path,"r");
     if (file == NULL) return 0;
+
     for (int i=0;i<FEATURE_COUNT;++i) {
-        if (fscanf(file,"%lf",&agent->weights.values[i]) != 1) {
+        if (fscanf(file,"%lf",&loaded.values[i]) != 1) {
             fclose(file);
             return 0;
         }
     }
+
     fclose(file);
+    agent->weights=loaded;
     return 1;
 }
