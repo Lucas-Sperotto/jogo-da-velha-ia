@@ -64,7 +64,12 @@ int main(void)
                 play_human_vs_agent("Minimax",agent_minimax_move,&stats);
                 break;
             }
-            case 5: case 6: case 7: case 8: case 9: case 10:
+            case 5: {
+                SearchStats stats={0};
+                play_human_vs_agent("Alpha-Beta",agent_alphabeta_move,&stats);
+                break;
+            }
+            case 6: case 7: case 8: case 9: case 10:
                 not_implemented(option); break;
             default: printf("\nOpção inválida.\n"); wait_enter(); break;
         }
