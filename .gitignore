@@ -1,0 +1,15 @@
+# Build
+*.o
+jogo_velha
+tests/test_game
+
+# Generated data/results
+results/*.csv
+data/*.dat
+data/*.bin
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
