@@ -12,13 +12,9 @@
 
 static void print_cell(char value, int position)
 {
-    if (value == PLAYER_X) {
-        printf(RED " X " RESET);
-    } else if (value == PLAYER_O) {
-        printf(BLUE " O " RESET);
-    } else {
-        printf(GRAY " %d " RESET, position + 1);
-    }
+    if (value == PLAYER_X) printf(RED " X " RESET);
+    else if (value == PLAYER_O) printf(BLUE " O " RESET);
+    else printf(GRAY " %d " RESET, position + 1);
 }
 
 void board_init(Board *board)
@@ -40,12 +36,10 @@ void clear_screen(void)
 void board_print(const Board *board)
 {
     if (board == NULL) return;
-
     printf("\n");
     printf(CYAN "╔════════════════════════════╗\n");
     printf("║       JOGO DA VELHA        ║\n");
     printf("╚════════════════════════════╝" RESET "\n\n");
-
     printf("       "); print_cell(board->cells[0], 0); printf(" │ ");
     print_cell(board->cells[1], 1); printf(" │ "); print_cell(board->cells[2], 2);
     printf("\n      ────┼─────┼────\n");
@@ -83,7 +77,6 @@ char board_winner(const Board *board)
         {1,4,7},{2,5,8},{0,4,8},{2,4,6}
     };
     if (board == NULL) return EMPTY;
-
     for (int i = 0; i < 8; ++i) {
         int a=lines[i][0], b=lines[i][1], c=lines[i][2];
         if (board->cells[a] != EMPTY &&
@@ -127,7 +120,7 @@ int read_human_move(const Board *board, char player)
 {
     char line[64];
     while (1) {
-        printf(YELLOW "Jogador %c, escolha uma posição [1-9]: " RESET, player);
+        printf(YELLOW "Jogador %c, escolha uma posição [1-9]: " RESET,player);
         if (fgets(line,sizeof(line),stdin) == NULL) return -1;
         char *end=NULL;
         long value=strtol(line,&end,10);
@@ -156,7 +149,6 @@ void play_human_vs_human(void)
     Board board;
     char current=PLAYER_X;
     board_init(&board);
-
     while (!board_is_terminal(&board)) {
         clear_screen();
         board_print(&board);
@@ -165,11 +157,45 @@ void play_human_vs_human(void)
         board_make_move(&board,move,current);
         current=other_player(current);
     }
-
     clear_screen();
     board_print(&board);
     char winner=board_winner(&board);
     if (winner == EMPTY) printf(YELLOW "Empate!\n" RESET);
     else printf(YELLOW "Jogador %c venceu!\n" RESET,winner);
+    wait_enter();
+}
+
+void play_human_vs_agent(const char *agent_name, MoveSelector selector, void *context)
+{
+    Board board;
+    char current=PLAYER_X;
+    board_init(&board);
+
+    while (!board_is_terminal(&board)) {
+        clear_screen();
+        board_print(&board);
+
+        if (current == PLAYER_X) {
+            int move=read_human_move(&board,current);
+            if (move < 0) return;
+            board_make_move(&board,move,current);
+        } else {
+            printf("Computador (%s) analisando...\n",agent_name);
+            int move=selector(&board,current,context);
+            if (move < 0 || !board_make_move(&board,move,current)) {
+                printf("Erro: o agente retornou uma jogada inválida.\n");
+                wait_enter();
+                return;
+            }
+        }
+        current=other_player(current);
+    }
+
+    clear_screen();
+    board_print(&board);
+    char winner=board_winner(&board);
+    if (winner == PLAYER_X) printf("Você venceu!\n");
+    else if (winner == PLAYER_O) printf("O computador (%s) venceu.\n",agent_name);
+    else printf("Empate!\n");
     wait_enter();
 }
