@@ -141,7 +141,9 @@ void wait_enter(void)
 {
     char line[8];
     printf("\nPressione ENTER para voltar ao menu...");
-    (void)fgets(line,sizeof(line),stdin);
+    if (fgets(line,sizeof(line),stdin) == NULL) {
+        clearerr(stdin);
+    }
 }
 
 void play_human_vs_human(void)
