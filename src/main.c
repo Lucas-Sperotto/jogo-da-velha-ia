@@ -1,5 +1,6 @@
 #include "agents.h"
 #include "game.h"
+#include "samuel.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,7 +70,18 @@ int main(void)
                 play_human_vs_agent("Alpha-Beta",agent_alphabeta_move,&stats);
                 break;
             }
-            case 6: case 7: case 8: case 9: case 10:
+            case 6: {
+                SamuelAgent samuel;
+                samuel_init(&samuel);
+                if (!samuel_load(&samuel,"data/samuel_weights.dat")) {
+                    printf("\nTreinando agente inspirado em Arthur Samuel...\n");
+                    samuel_train(&samuel,5000);
+                    (void)samuel_save(&samuel,"data/samuel_weights.dat");
+                }
+                play_human_vs_agent("Samuel-style",agent_samuel_move,&samuel);
+                break;
+            }
+            case 7: case 8: case 9: case 10:
                 not_implemented(option); break;
             default: printf("\nOpção inválida.\n"); wait_enter(); break;
         }
