@@ -358,7 +358,8 @@ gcc -std=c11 -O2 -Wall -Wextra -Wpedantic
 **Resultado:** Zero warnings e compilação limpa em todos os alvos e suítes de teste.
 
 ### Verificação de Vazamento de Memória (Valgrind Memcheck)
-Executado com `--leak-check=full --error-exitcode=1` sobre todas as 9 suítes de testes:
+Executado com `--leak-check=full --error-exitcode=1` sobre todas as 10 suítes de testes:
+- `tests/test_input`: valida parsing estrito, limites, sufixos inválidos e overflow.
 - `tests/test_rng`: valida sequência conhecida, reseed determinístico e faixas das funções de amostragem.
 - `tests/test_game`: 0 erros, 0 vazamentos.
 - `tests/test_agents`: 0 erros, 0 vazamentos.
@@ -379,7 +380,7 @@ O workflow `.github/workflows/ci.yml` executa automaticamente:
 - compilação e testes com GCC usando warnings como erro (`-Werror`);
 - compilação e testes com Clang usando warnings como erro;
 - ASan e UBSan;
-- Valgrind Memcheck nas nove suítes.
+- Valgrind Memcheck nas dez suítes.
 
 Assim, as verificações de compilação, comportamento e segurança de memória deixam de depender apenas da execução manual local.
 
@@ -406,3 +407,17 @@ O teste `tests/test_rng.c` contém um vetor de referência para a seed `42`, gar
 ### Experimentos
 
 `run_experiment_seeded` reinicializa o PRNG antes das partidas e grava a seed no `ExperimentResult`. O CSV usa a coluna `seed` como primeira coluna, permitindo registrar e repetir condições estocásticas.
+
+
+---
+
+## 13. Parsing Estrito de Entrada
+
+**Arquivos:** `include/input.h`, `src/input.c`
+
+A conversão numérica foi extraída de `main.c` para permitir testes independentes da interface interativa.
+
+- `parse_int_range`: aceita um inteiro completo, permite espaços em branco nas bordas, rejeita sufixos como `1abc`, decimais como `2.5`, overflow e valores fora da faixa.
+- `parse_u64`: interpreta seeds de 64 bits, incluindo `UINT64_MAX`, e rejeita números negativos, overflow e caracteres extras.
+
+O menu continua usando `fgets`, mas delega a interpretação ao módulo de entrada. Isso evita que uma entrada parcialmente numérica seja aceita silenciosamente.

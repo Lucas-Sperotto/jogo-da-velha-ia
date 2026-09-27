@@ -6,6 +6,7 @@ O projeto separa três responsabilidades:
 2. **Agentes** (`src/agents/`): recebem um estado e escolhem uma jogada. Eles não implementam regras próprias.
 3. **Laboratório** (`src/registry.c` e `src/experiment.c`): instancia agentes, executa IA × IA e coleta métricas.
 4. **Aleatoriedade** (`src/rng.c`): fornece um PRNG único para todos os agentes estocásticos, com seed explícita e reprodução determinística da sequência.
+5. **Entrada numérica** (`src/input.c`): faz parsing estrito de inteiros e seeds, separando validação textual da interface interativa.
 
 Essa separação permite comparar algoritmos sobre exatamente o mesmo jogo e controlar a aleatoriedade sem espalhar dependências de `rand()` pelo código.
 
