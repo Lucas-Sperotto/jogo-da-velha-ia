@@ -32,3 +32,7 @@ Os diretórios existem no repositório por meio de `.gitkeep`.
 ## Regra de projeto
 
 Nenhum agente pode alterar permanentemente o tabuleiro apenas para analisar uma jogada. Algoritmos de busca devem sempre desfazer movimentos simulados antes de retornar.
+
+## Documentação Detalhada dos Métodos
+
+Para a especificação formal, assinaturas, parâmetros, tipos de dados e análise de cada método e agente, consulte a [Referência Completa dos Métodos](referencia_metodos.md).

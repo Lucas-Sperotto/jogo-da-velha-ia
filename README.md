@@ -110,6 +110,7 @@ Cada aluno deve trabalhar em seu próprio fork. O fluxo completo de `origin`, `u
 
 - [Arquitetura](docs/architecture.md)
 - [Algoritmos](docs/algorithms.md)
+- [Referência Completa dos Métodos](docs/referencia_metodos.md)
 - [Experimentos](docs/experiments.md)
 
 ## Arquivos gerados

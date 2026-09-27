@@ -2,6 +2,15 @@
 
 #include <stdlib.h>
 
+/**
+ * @brief Conta quantas jogadas imediatas de vitória existem para um determinado jogador.
+ *
+ * Simula cada jogada disponível e testa se resulta em vitória imediata.
+ *
+ * @param board Tabuleiro a ser analisado.
+ * @param player Jogador avaliado.
+ * @return Quantidade de vitórias possíveis em 1 lance (0 a 8).
+ */
 static int count_immediate_wins(Board *board, char player)
 {
     int moves[BOARD_SIZE];
@@ -15,6 +24,13 @@ static int count_immediate_wins(Board *board, char player)
     return wins;
 }
 
+/**
+ * @brief Conta quantas peças do jogador estão posicionadas nos quatro cantos (0, 2, 6, 8).
+ *
+ * @param board Tabuleiro atual.
+ * @param player Jogador avaliado.
+ * @return Número de cantos controlados (0 a 4).
+ */
 static int count_corners(const Board *board, char player)
 {
     static const int corners[]={0,2,6,8};
@@ -23,6 +39,17 @@ static int count_corners(const Board *board, char player)
     return count;
 }
 
+/**
+ * @brief Avalia o potencial de retas abertas (linhas, colunas e diagonais) para o jogador.
+ *
+ * Para cada uma das 8 retas do tabuleiro:
+ *  - Se a reta contiver ao menos uma peça adversária, é considerada bloqueada (score 0);
+ *  - Caso contrário, pontua com base no número de peças próprias presentes (own + 1).
+ *
+ * @param board Tabuleiro atual.
+ * @param player Jogador de referência.
+ * @return Pontuação cumulativa de potencial de linhas.
+ */
 static int line_potential(const Board *board, char player)
 {
     static const int lines[8][3]={
@@ -43,6 +70,13 @@ static int line_potential(const Board *board, char player)
     return score;
 }
 
+/**
+ * @brief Conta o total de peças de um jogador no tabuleiro.
+ *
+ * @param board Tabuleiro atual.
+ * @param player Jogador avaliado.
+ * @return Número de peças no tabuleiro (0 a 5).
+ */
 static int count_pieces(const Board *board, char player)
 {
     int count=0;
@@ -50,6 +84,21 @@ static int count_pieces(const Board *board, char player)
     return count;
 }
 
+/**
+ * @brief Extrai o vetor de 6 características (features) contínuas sob a perspectiva do jogador.
+ *
+ * As 6 dimensões calculadas são:
+ *  - out[0]: Termo constante de viés (1.0);
+ *  - out[1]: Diferença de vitórias imediatas (player - opponent);
+ *  - out[2]: Posse do centro (+1.0 se player, -1.0 se opponent, 0.0 se vazio);
+ *  - out[3]: Diferença de cantos ocupados (player - opponent);
+ *  - out[4]: Diferença de potencial de linhas abertas (player - opponent);
+ *  - out[5]: Diferença de contagem de peças (player - opponent).
+ *
+ * @param board Tabuleiro atual.
+ * @param player Jogador de referência.
+ * @param out Vetor de destino com tamanho mínimo FEATURE_COUNT (6).
+ */
 void extract_features(const Board *board, char player, double out[FEATURE_COUNT])
 {
     char opponent=other_player(player);
@@ -62,6 +111,15 @@ void extract_features(const Board *board, char player, double out[FEATURE_COUNT]
     out[5]=(double)(count_pieces(board,player)-count_pieces(board,opponent));
 }
 
+/**
+ * @brief Avalia uma posição calculando o produto escalar entre os pesos e as features extraídas:
+ *        Score = Sum_{i=0..5} (weights[i] * features[i])
+ *
+ * @param board Tabuleiro atual.
+ * @param player Jogador da perspectiva de avaliação.
+ * @param weights Pesos lineares da estratégia.
+ * @return Escalar de avaliação da posição (quanto maior, mais favorável ao player).
+ */
 double evaluate_position(const Board *board, char player, const StrategyWeights *weights)
 {
     double features[FEATURE_COUNT], score=0.0;
@@ -70,6 +128,23 @@ double evaluate_position(const Board *board, char player, const StrategyWeights 
     return score;
 }
 
+/**
+ * @brief Escolhe a jogada ótima usando busca rasa de 2 níveis combinada com política epsilon-greedy.
+ *
+ * Funcionamento:
+ *  1. Com probabilidade epsilon, escolhe uma jogada aleatória uniforme (exploração);
+ *  2. Para cada lance candidato do jogador:
+ *     - Se vencer imediatamente, retorna esse lance;
+ *     - Simula o lance e examina todas as respostas do adversário, considerando a pior réplica
+ *       (se o adversário vencer em resposta, pontua -1000.0, senão avalia a posição resultante);
+ *  3. Escolhe o movimento que maximiza a pior réplica adversária (minimax raso de 2 níveis).
+ *
+ * @param board Tabuleiro atual.
+ * @param player Jogador da vez.
+ * @param weights Pesos lineares da função heurística.
+ * @param epsilon Probabilidade de exploração aleatória (0.0 para modo totalmente ganancioso).
+ * @return Posição escolhida (0 a 8) ou -1 se não houver jogadas válidas.
+ */
 int weighted_best_move(Board *board, char player, const StrategyWeights *weights, double epsilon)
 {
     int moves[BOARD_SIZE];

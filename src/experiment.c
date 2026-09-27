@@ -2,8 +2,22 @@
 
 #include <stdio.h>
 
+/**
+ * @brief Armazena o número de jogadas realizadas na última partida concluída.
+ */
 static unsigned long long last_match_moves=0;
 
+/**
+ * @brief Simula uma única partida entre dois agentes de IA (x como 'X' e o como 'O').
+ *
+ * Se o parâmetro visual for ativado (1), imprime o tabuleiro colorido a cada lance
+ * e identifica textualmente a jogada realizada.
+ *
+ * @param x Agente que joga com 'X'.
+ * @param o Agente que joga com 'O'.
+ * @param visual Flag booleana (1 para exibir animação/tabuleiro no terminal, 0 para modo silencioso).
+ * @return Símbolo do vencedor ('X', 'O') ou EMPTY (' ') em caso de empate.
+ */
 char play_ai_match(RuntimeAgent *x, RuntimeAgent *o, int visual)
 {
     Board board;
@@ -37,6 +51,19 @@ char play_ai_match(RuntimeAgent *x, RuntimeAgent *o, int visual)
     return board_winner(&board);
 }
 
+/**
+ * @brief Executa um experimento com games partidas entre o Agente A e o Agente B.
+ *
+ * Alternância estrita:
+ *  - Partidas pares (0, 2, 4...): A joga como 'X' e B joga como 'O';
+ *  - Partidas ímpares (1, 3, 5...): B joga como 'X' e A joga como 'O'.
+ * Isso elimina viés decorrente da vantagem de jogar primeiro.
+ *
+ * @param a Agente A.
+ * @param b Agente B.
+ * @param games Quantidade de partidas a executar.
+ * @return Estrutura ExperimentResult com contagem agregada de vitórias, empates e jogadas.
+ */
 ExperimentResult run_experiment(RuntimeAgent *a, RuntimeAgent *b, int games)
 {
     ExperimentResult result={0};
@@ -61,6 +88,16 @@ ExperimentResult run_experiment(RuntimeAgent *a, RuntimeAgent *b, int games)
     return result;
 }
 
+/**
+ * @brief Exibe na saída padrão um resumo legível e estatístico do experimento.
+ *
+ * Mostra vitórias de A e B, empates, total de jogadas, média por partida,
+ * bem como total de nós visitados e podas registradas na árvore de busca.
+ *
+ * @param a Agente A.
+ * @param b Agente B.
+ * @param result Ponteiro para os resultados coletados.
+ */
 void print_experiment_result(const RuntimeAgent *a, const RuntimeAgent *b,
                              const ExperimentResult *result)
 {
@@ -78,6 +115,17 @@ void print_experiment_result(const RuntimeAgent *a, const RuntimeAgent *b,
     printf("Nós B:      %llu | Podas B: %llu\n",b->total_nodes,b->total_prunes);
 }
 
+/**
+ * @brief Salva os dados do experimento em formato CSV no arquivo especificado.
+ *
+ * Insere a linha de cabeçalho na primeira escrita se o arquivo estiver vazio.
+ *
+ * @param path Caminho do arquivo CSV (ex: "results/experiments.csv").
+ * @param a Agente A.
+ * @param b Agente B.
+ * @param result Ponteiro para o resultado agregado.
+ * @return 1 se gravado com sucesso; 0 em caso de falha de arquivo.
+ */
 int append_experiment_csv(const char *path, const RuntimeAgent *a,
                           const RuntimeAgent *b, const ExperimentResult *result)
 {

@@ -8,16 +8,34 @@
 #define ELITE_COUNT 4
 #define EVAL_GAMES 12
 
+/**
+ * @brief Representação de um indivíduo da população genética.
+ */
 typedef struct {
-    StrategyWeights weights;
-    double fitness;
+    StrategyWeights weights; /**< Cromossomo: vetor de 6 pesos lineares da estratégia. */
+    double fitness;          /**< Pontuação de aptidão acumulada nos jogos de avaliação. */
 } Individual;
 
+/**
+ * @brief Gera um número pseudoaleatório no ponto flutuante dentro do intervalo [min, max].
+ *
+ * @param min Limite inferior.
+ * @param max Limite superior.
+ * @return Valor aleatório no intervalo [min, max].
+ */
 static double random_between(double min, double max)
 {
     return min + (max - min) * ((double)rand() / (double)RAND_MAX);
 }
 
+/**
+ * @brief Executa uma partida de avaliação entre um conjunto de pesos e um oponente especificado.
+ *
+ * @param weights Pesos do indivíduo avaliado.
+ * @param evolved_player Símbolo atribuído ao indivíduo ('X' ou 'O').
+ * @param opponent Função MoveSelector do adversário (heurístico ou aleatório).
+ * @return +1 se o indivíduo venceu, 0 em empate, -1 se perdeu.
+ */
 static int play_match(const StrategyWeights *weights, char evolved_player,
                       MoveSelector opponent)
 {
@@ -39,6 +57,19 @@ static int play_match(const StrategyWeights *weights, char evolved_player,
     return winner == evolved_player ? 1 : -1;
 }
 
+/**
+ * @brief Calcula a aptidão (fitness) total de um indivíduo através de EVAL_GAMES partidas.
+ *
+ * O indivíduo joga metade das partidas como 'X' e metade como 'O', enfrentando
+ * adversários aleatórios e heurísticos.
+ * Pontuação:
+ *  - Vitória: +3.0
+ *  - Empate: +1.0
+ *  - Derrota: -2.0
+ *
+ * @param weights Pesos do indivíduo.
+ * @return Aptidão total acumulada.
+ */
 static double evaluate_individual(const StrategyWeights *weights)
 {
     double fitness=0.0;
@@ -53,6 +84,13 @@ static double evaluate_individual(const StrategyWeights *weights)
     return fitness;
 }
 
+/**
+ * @brief Função comparadora para ordenação decrescente de indivíduos por aptidão (fitness) via qsort.
+ *
+ * @param a Ponteiro para o primeiro indivíduo.
+ * @param b Ponteiro para o segundo indivíduo.
+ * @return -1 se a tem maior fitness que b, 1 se menor, 0 se igual.
+ */
 static int compare_individuals(const void *a, const void *b)
 {
     const Individual *ia=a, *ib=b;
@@ -61,6 +99,15 @@ static int compare_individuals(const void *a, const void *b)
     return 0;
 }
 
+/**
+ * @brief Operador de cruzamento aritmético (crossover contínuo) entre dois indivíduos pais.
+ *
+ * Para cada peso i: Child[i] = mix * ParentA[i] + (1 - mix) * ParentB[i], com mix ~ U(0, 1).
+ *
+ * @param a Estrutura de pesos do primeiro progenitor.
+ * @param b Estrutura de pesos do segundo progenitor.
+ * @return Novo indivíduo filho recombinado.
+ */
 static StrategyWeights crossover(const StrategyWeights *a, const StrategyWeights *b)
 {
     StrategyWeights child;
@@ -71,6 +118,11 @@ static StrategyWeights crossover(const StrategyWeights *a, const StrategyWeights
     return child;
 }
 
+/**
+ * @brief Operador de mutação gênica: com 25% de probabilidade por peso, adiciona ruído em [-1.0, 1.0].
+ *
+ * @param weights Ponteiro para o cromossomo a ser mutado.
+ */
 static void mutate(StrategyWeights *weights)
 {
     for (int i=0;i<FEATURE_COUNT;++i) {
@@ -79,6 +131,11 @@ static void mutate(StrategyWeights *weights)
     }
 }
 
+/**
+ * @brief Inicializa a estrutura do agente genético com valores padrão.
+ *
+ * @param agent Ponteiro para a estrutura GeneticAgent.
+ */
 void genetic_init(GeneticAgent *agent)
 {
     for (int i=0;i<FEATURE_COUNT;++i) agent->best.values[i]=0.0;
@@ -86,6 +143,19 @@ void genetic_init(GeneticAgent *agent)
     agent->generations=0;
 }
 
+/**
+ * @brief Executa o ciclo evolutivo ao longo do número de gerações especificado.
+ *
+ * Passos por geração:
+ *  1. Avalia o fitness de todos os indivíduos da população;
+ *  2. Ordena a população por fitness decrescente;
+ *  3. Atualiza o melhor indivíduo histórico se houver recorde de fitness;
+ *  4. Preserva os ELITE_COUNT (4) melhores indivíduos diretamente para a próxima geração;
+ *  5. Preenche as vagas restantes através de seleção nos top 50%, crossover e mutação.
+ *
+ * @param agent Ponteiro para o agente genético.
+ * @param generations Número de gerações a evoluir.
+ */
 void genetic_train(GeneticAgent *agent, int generations)
 {
     if (agent == NULL || generations <= 0) return;
@@ -123,6 +193,14 @@ void genetic_train(GeneticAgent *agent, int generations)
     }
 }
 
+/**
+ * @brief Seleciona a jogada em modo ganancioso (epsilon=0.0) usando o melhor indivíduo evoluído.
+ *
+ * @param board Tabuleiro atual.
+ * @param player Jogador da vez.
+ * @param context Ponteiro para a instância GeneticAgent.
+ * @return Posição escolhida (0 a 8) ou -1 se inválido.
+ */
 int agent_genetic_move(Board *board, char player, void *context)
 {
     GeneticAgent *agent=context;
@@ -130,6 +208,13 @@ int agent_genetic_move(Board *board, char player, void *context)
     return weighted_best_move(board,player,&agent->best,0.0);
 }
 
+/**
+ * @brief Salva o estado do agente genético (gerações, melhor fitness e pesos) em arquivo ASCII.
+ *
+ * @param agent Agente genético a ser salvo.
+ * @param path Caminho do arquivo no disco (ex: "data/genetic_weights.dat").
+ * @return 1 se salvo com sucesso; 0 em caso de erro de abertura/escrita.
+ */
 int genetic_save(const GeneticAgent *agent, const char *path)
 {
     FILE *file=fopen(path,"w");
@@ -141,6 +226,13 @@ int genetic_save(const GeneticAgent *agent, const char *path)
     return 1;
 }
 
+/**
+ * @brief Carrega o estado do agente genético a partir de arquivo de texto.
+ *
+ * @param agent Agente genético de destino.
+ * @param path Caminho do arquivo a ser lido.
+ * @return 1 se lido com sucesso; 0 caso contrário.
+ */
 int genetic_load(GeneticAgent *agent, const char *path)
 {
     FILE *file=fopen(path,"r");

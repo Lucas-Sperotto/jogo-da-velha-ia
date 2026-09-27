@@ -2,11 +2,27 @@
 
 #include <stdio.h>
 
+/**
+ * @brief Registro instantâneo de uma posição observada durante a partida de self-play.
+ */
 typedef struct {
-    double features[FEATURE_COUNT];
-    char player;
+    double features[FEATURE_COUNT]; /**< Vetor de características extraído do estado. */
+    char player;                    /**< Jogador que realizou a ação que levou a este estado. */
 } Experience;
 
+/**
+ * @brief Inicializa o agente Samuel com pesos heurísticos iniciais e hiperparâmetros padrão.
+ *
+ * Pesos iniciais:
+ *  - viés: 0.0
+ *  - vitórias imediatas: 4.0
+ *  - centro: 1.5
+ *  - cantos: 0.8
+ *  - linhas: 0.6
+ *  - peças: 0.2
+ *
+ * @param agent Ponteiro para o agente Samuel.
+ */
 void samuel_init(SamuelAgent *agent)
 {
     static const double initial[FEATURE_COUNT]={0.0,4.0,1.5,0.8,0.6,0.2};
@@ -15,6 +31,14 @@ void samuel_init(SamuelAgent *agent)
     agent->exploration=0.15;
 }
 
+/**
+ * @brief Seleciona a jogada em modo ganancioso (epsilon=0.0) para a interface MoveSelector.
+ *
+ * @param board Tabuleiro atual.
+ * @param player Jogador da vez.
+ * @param context Ponteiro para a estrutura SamuelAgent.
+ * @return Posição escolhida (0 a 8) ou -1 se inválido.
+ */
 int agent_samuel_move(Board *board, char player, void *context)
 {
     SamuelAgent *agent=context;
@@ -22,6 +46,22 @@ int agent_samuel_move(Board *board, char player, void *context)
     return weighted_best_move(board,player,&agent->weights,0.0);
 }
 
+/**
+ * @brief Treina os pesos da função linear através de auto-jogo (self-play).
+ *
+ * Processo por episódio:
+ *  1. Executa uma partida completa com exploração epsilon = 0.15;
+ *  2. Registra o histórico de características de cada estado intermediário;
+ *  3. Ao final da partida, define o alvo (Target):
+ *     - +10.0 se o jogador do estado venceu a partida;
+ *     - -10.0 se o jogador do estado perdeu;
+ *     -  0.0 em caso de empate;
+ *  4. Calcula o erro (Target - Predição) e atualiza os pesos pelo método do gradiente:
+ *     W[i] <- W[i] + learning_rate * error * feature[i].
+ *
+ * @param agent Ponteiro para o agente a treinar.
+ * @param games Quantidade de partidas completas a simular.
+ */
 void samuel_train(SamuelAgent *agent, int games)
 {
     if (agent == NULL || games <= 0) return;
@@ -62,6 +102,13 @@ void samuel_train(SamuelAgent *agent, int games)
     }
 }
 
+/**
+ * @brief Grava os pesos aprendidos em arquivo ASCII com precisão de 17 dígitos significativos.
+ *
+ * @param agent Agente Samuel cujos pesos serão persistidos.
+ * @param path Caminho do arquivo no disco (ex: "data/samuel_weights.dat").
+ * @return 1 se bem-sucedido; 0 em caso de falha de abertura/escrita.
+ */
 int samuel_save(const SamuelAgent *agent, const char *path)
 {
     FILE *file=fopen(path,"w");
@@ -72,6 +119,13 @@ int samuel_save(const SamuelAgent *agent, const char *path)
     return 1;
 }
 
+/**
+ * @brief Lê os pesos a partir de um arquivo formatado em disco.
+ *
+ * @param agent Agente Samuel que receberá os pesos carregados.
+ * @param path Caminho do arquivo a ser lido.
+ * @return 1 se os FEATURE_COUNT valores foram lidos com sucesso; 0 caso contrário.
+ */
 int samuel_load(SamuelAgent *agent, const char *path)
 {
     FILE *file=fopen(path,"r");

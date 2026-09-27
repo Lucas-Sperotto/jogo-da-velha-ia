@@ -2,6 +2,13 @@
 *.o
 jogo_velha
 tests/test_game
+tests/test_agents
+tests/test_minimax
+tests/test_alphabeta
+tests/test_samuel
+tests/test_genetic
+tests/test_qlearning
+tests/test_experiment
 
 # Generated data/results
 results/*.csv

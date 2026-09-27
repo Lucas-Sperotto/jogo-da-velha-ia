@@ -1,5 +1,24 @@
 #include "agents.h"
 
+/**
+ * @brief Algoritmo recursivo Minimax com Poda Alpha-Beta (Alpha-Beta Pruning).
+ *
+ * Mantém os limites:
+ *  - alpha: a melhor pontuação que o maximizador (root_player) pode garantir até o momento;
+ *  - beta: a melhor pontuação que o minimizador (adversário) pode garantir até o momento.
+ *
+ * Sempre que alpha >= beta, o ramo corrente é podado pois não alterará a decisão final,
+ * incrementando stats->prunes. A cada chamada recursiva, stats->nodes é incrementado.
+ *
+ * @param board Tabuleiro atual sendo percorrido na árvore de busca.
+ * @param root_player Jogador para o qual a busca está calculando a jogada ótima.
+ * @param turn Jogador com a vez de jogar no nível atual.
+ * @param depth Profundidade atual na árvore de busca.
+ * @param alpha Limite inferior de pontuação garantido pelo maximizador.
+ * @param beta Limite superior de pontuação garantido pelo minimizador.
+ * @param stats Estrutura opcional para acumular métricas de nós e podas.
+ * @return Pontuação minimax do estado avaliado.
+ */
 static int alphabeta(Board *board, char root_player, char turn, int depth,
                      int alpha, int beta, SearchStats *stats)
 {
@@ -44,6 +63,17 @@ static int alphabeta(Board *board, char root_player, char turn, int depth,
     return value;
 }
 
+/**
+ * @brief Ponto de entrada do agente Alpha-Beta para decisão ótima na raiz.
+ *
+ * Inicia os limites com alpha = -1000 e beta = +1000, atualizando o valor de alpha
+ * à medida que melhores opções são encontradas e propagando o corte para ramos filhos.
+ *
+ * @param board Tabuleiro atual.
+ * @param player Símbolo do jogador da vez.
+ * @param context Ponteiro opcional para SearchStats.
+ * @return Índice do melhor movimento (0 a 8) ou -1 se não houver jogadas disponíveis.
+ */
 int agent_alphabeta_move(Board *board, char player, void *context)
 {
     SearchStats *stats=context;

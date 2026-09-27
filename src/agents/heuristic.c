@@ -1,5 +1,15 @@
 #include "agents.h"
 
+/**
+ * @brief Varre as jogadas disponíveis para verificar se alguma gera vitória imediata.
+ *
+ * Aplica temporariamente cada movimento possível com board_make_move, testa se
+ * board_winner retorna o jogador em questão, e reverte com board_undo_move.
+ *
+ * @param board Ponteiro para o tabuleiro atual.
+ * @param player Jogador para o qual busca-se a vitória imediata.
+ * @return Índice da jogada vencedora (0 a 8) ou -1 se não houver vitória em 1 lance.
+ */
 static int find_immediate_win(Board *board, char player)
 {
     int moves[BOARD_SIZE];
@@ -19,6 +29,21 @@ static int find_immediate_win(Board *board, char player)
     return -1;
 }
 
+/**
+ * @brief Seleciona a jogada com base em uma árvore de decisão de regras prioritárias.
+ *
+ * Ordem de prioridade estrita:
+ *  1. Vitória imediata da própria IA;
+ *  2. Bloqueio de vitória iminente do adversário;
+ *  3. Ocupação da casa central (posição 4);
+ *  4. Ocupação de um dos cantos (0, 2, 6, 8);
+ *  5. Escolha da primeira posição livre restante.
+ *
+ * @param board Ponteiro para o tabuleiro atual.
+ * @param player Símbolo do jogador da vez.
+ * @param context Contexto genérico (não utilizado).
+ * @return Posição escolhida (0 a 8) ou -1 se o tabuleiro estiver cheio.
+ */
 int agent_heuristic_move(Board *board, char player, void *context)
 {
     static const int corners[] = {0, 2, 6, 8};

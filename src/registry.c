@@ -2,6 +2,12 @@
 
 #include <string.h>
 
+/**
+ * @brief Converte o enum AgentKind na sua representação em texto amigável.
+ *
+ * @param kind Tipo do agente (AgentKind).
+ * @return String constante estática com o nome em português.
+ */
 const char *agent_kind_name(AgentKind kind)
 {
     switch (kind) {
@@ -16,6 +22,18 @@ const char *agent_kind_name(AgentKind kind)
     }
 }
 
+/**
+ * @brief Inicializa e prepara um agente para execução em tempo real.
+ *
+ * Configura os campos base, zera estatísticas de busca e, para agentes com aprendizado:
+ *  - Samuel: carrega de "data/samuel_weights.dat" ou treina 5000 jogos e salva;
+ *  - Genético: carrega de "data/genetic_weights.dat" ou evolui 60 gerações e salva;
+ *  - Q-Learning: aloca tabela Q, carrega de "data/qtable.bin" ou treina 50000 episódios e salva.
+ *
+ * @param agent Ponteiro para a estrutura RuntimeAgent.
+ * @param kind Tipo de agente a instanciar.
+ * @return 1 se inicializado com sucesso; 0 em caso de erro de argumentos ou alocação.
+ */
 int runtime_agent_init(RuntimeAgent *agent, AgentKind kind)
 {
     if (agent == NULL || kind < AGENT_RANDOM || kind > AGENT_QLEARNING) return 0;
@@ -52,6 +70,13 @@ int runtime_agent_init(RuntimeAgent *agent, AgentKind kind)
     return 1;
 }
 
+/**
+ * @brief Libera recursos dinâmicos alocados pelo agente durante a execução.
+ *
+ * Especificamente, desaloca a tabela Q do QLearningAgent se ela estiver ativa.
+ *
+ * @param agent Ponteiro para o agente a ser destruído.
+ */
 void runtime_agent_destroy(RuntimeAgent *agent)
 {
     if (agent != NULL && agent->qlearning_ready) {
@@ -60,6 +85,17 @@ void runtime_agent_destroy(RuntimeAgent *agent)
     }
 }
 
+/**
+ * @brief Despachador polimórfico de jogada para RuntimeAgent.
+ *
+ * Identifica o tipo do agente via campo 'kind', invoca o algoritmo correspondente,
+ * e acumula métricas de nós visitados e podas realizadas para Minimax/Alpha-Beta.
+ *
+ * @param board Tabuleiro atual.
+ * @param player Jogador da vez.
+ * @param context Ponteiro para o RuntimeAgent.
+ * @return Índice da jogada (0 a 8) ou -1 se inválido.
+ */
 int runtime_agent_move(Board *board, char player, void *context)
 {
     RuntimeAgent *agent=context;

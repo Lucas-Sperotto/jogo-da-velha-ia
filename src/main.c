@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+/**
+ * @brief Exibe na tela o menu principal do Laboratório de Inteligência Artificial.
+ */
 static void print_menu(void)
 {
     printf("╔══════════════════════════════════╗\n");
@@ -23,7 +26,7 @@ static void print_menu(void)
     printf("║  5. Humano × Alpha-Beta          ║\n");
     printf("║  6. IA estilo Arthur Samuel      ║\n");
     printf("║  7. Algoritmo Genético           ║\n");
-    printf("║  8. Q-Learning                    ║\n");
+    printf("║  8. Q-Learning                   ║\n");
     printf("║                                  ║\n");
     printf("║  9. IA × IA                      ║\n");
     printf("║ 10. Executar experimento         ║\n");
@@ -32,6 +35,14 @@ static void print_menu(void)
     printf("╚══════════════════════════════════╝\n");
 }
 
+/**
+ * @brief Lê um número inteiro da entrada padrão com validação de faixa [min, max].
+ *
+ * @param prompt Mensagem exibida solicitando a entrada.
+ * @param min Valor mínimo aceitável.
+ * @param max Valor máximo aceitável.
+ * @return Inteiro validado dentro do intervalo.
+ */
 static int read_int(const char *prompt, int min, int max)
 {
     char line[64];
@@ -45,11 +56,22 @@ static int read_int(const char *prompt, int min, int max)
     }
 }
 
+/**
+ * @brief Lê a opção selecionada no menu principal (entre 0 e 10).
+ *
+ * @return Opção inteira escolhida.
+ */
 static int read_option(void)
 {
     return read_int("\nEscolha uma opção: ",0,10);
 }
 
+/**
+ * @brief Apresenta submenu interativo para seleção de um tipo de agente.
+ *
+ * @param label Título descritivo exibido acima das opções (ex: "Agente X:").
+ * @return Tipo de agente escolhido (AgentKind).
+ */
 static AgentKind choose_agent(const char *label)
 {
     printf("\n%s\n",label);
@@ -58,6 +80,17 @@ static AgentKind choose_agent(const char *label)
     return (AgentKind)read_int("Escolha: ",AGENT_RANDOM,AGENT_QLEARNING);
 }
 
+/**
+ * @brief Inicializa com segurança um par de agentes em tempo de execução.
+ *
+ * Se a inicialização do segundo agente falhar, garante a desalocação do primeiro.
+ *
+ * @param a Ponteiro para o primeiro RuntimeAgent.
+ * @param ka Tipo do primeiro agente.
+ * @param b Ponteiro para o segundo RuntimeAgent.
+ * @param kb Tipo do segundo agente.
+ * @return 1 se ambos foram inicializados com sucesso; 0 caso contrário.
+ */
 static int init_pair(RuntimeAgent *a, AgentKind ka, RuntimeAgent *b, AgentKind kb)
 {
     if (!runtime_agent_init(a,ka)) return 0;
@@ -68,6 +101,9 @@ static int init_pair(RuntimeAgent *a, AgentKind ka, RuntimeAgent *b, AgentKind k
     return 1;
 }
 
+/**
+ * @brief Submenu e execução de partida única interativa IA contra IA com exibição visual.
+ */
 static void play_ai_vs_ai_menu(void)
 {
     AgentKind xkind=choose_agent("Agente X:");
@@ -89,6 +125,9 @@ static void play_ai_vs_ai_menu(void)
     wait_enter();
 }
 
+/**
+ * @brief Submenu e execução de experimento com múltiplas partidas e exportação para CSV.
+ */
 static void run_experiment_menu(void)
 {
     AgentKind akind=choose_agent("Agente A:");
@@ -112,6 +151,14 @@ static void run_experiment_menu(void)
     wait_enter();
 }
 
+/**
+ * @brief Ponto de entrada principal do programa (CLI interativo).
+ *
+ * Inicializa a semente de números pseudoaleatórios com base no relógio do sistema (time(NULL))
+ * e executa o laço de menu até que a opção 0 (Sair) seja acionada.
+ *
+ * @return Código de término de execução (0).
+ */
 int main(void)
 {
     int option;
